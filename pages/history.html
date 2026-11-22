@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>My RiP – السجل</title>
+  <meta name="theme-color" content="#1e3a8a"/>
+  <link rel="manifest" href="../manifest.json"/>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico"/>
+  <link rel="icon" type="image/png" href="../icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="../icons/icon-192.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+</head>
+<body>
+<div id="app">
+
+  <!-- SUBPAGE HEADER (no sidebar, back button) -->
+  <header class="subpage-header">
+    <button class="back-btn" onclick="history.back()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+    </button>
+    <div class="subpage-title" data-i18n="history_title">سجل العمليات</div>
+    <button class="subpage-action-btn" id="clearBtn" onclick="confirmClearHistory()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/><path d="M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-content subpage-content">
+    <div id="historyList"></div>
+  </main>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="../js/i18n.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  // ===== HISTORY STORAGE =====
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem('ripHistory') || '[]'); } catch { return []; }
+  }
+  function saveHistory(h) { localStorage.setItem('ripHistory', JSON.stringify(h)); }
+  function clearHistory() { localStorage.removeItem('ripHistory'); }
+
+  function confirmClearHistory() {
+    showConfirmModal(t('confirm_clear_history'), t('confirm_clear_history_msg'), () => {
+      clearHistory();
+      renderHistory();
+      showToast(t('deleted'));
+    });
+  }
+
+  function formatRIP(rip) {
+    if (!rip || rip.length < 20) return rip;
+    return rip.slice(0,3)+' '+rip.slice(3,8)+' '+rip.slice(8,18)+' '+rip.slice(18,20);
+  }
+
+  function renderHistory() {
+    const all = getHistory();
+    const list = document.getElementById('historyList');
+    const clearBtn = document.getElementById('clearBtn');
+
+    if (all.length === 0) {
+      clearBtn.style.display = 'none';
+      list.innerHTML = `
+        <div class="empty-state">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+          </svg>
+          <p class="empty-title" data-i18n="history_empty">${t('history_empty')}</p>
+          <p style="font-size:0.8rem;" data-i18n="history_empty_sub">${t('history_empty_sub')}</p>
+        </div>`;
+      return;
+    }
+
+    clearBtn.style.display = 'flex';
+    list.innerHTML = all.map((item, i) => `
+      <div class="account-card animate-in" style="animation-delay:${i * 0.04}s">
+        <div class="account-row">
+          <span class="account-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            CCP
+          </span>
+          <span class="account-value">${item.ccp}</span>
+          <span style="margin:0 10px;color:var(--text2);font-size:0.8rem;">|</span>
+          <span class="account-label">مفتاح CCP</span>
+          <span class="key-badge" style="font-size:0.82rem;">${item.ccpKey}</span>
+        </div>
+        <div class="account-row">
+          <span class="account-label">مفتاح RIP</span>
+          <span class="key-badge" style="font-size:0.82rem;">${item.ripKey}</span>
+        </div>
+        <div class="rip-chip" style="cursor:pointer;" onclick='copyText("${item.rip}")'>${formatRIP(item.rip)}</div>
+        <div class="account-actions">
+          <button class="btn-icon" onclick='copyText("${item.rip}")'>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+          <button class="btn-icon" onclick='shareText("${item.rip}", "RIP")'>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+          <span class="account-date">${item.date || ''}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  renderHistory();
+</script>
+</body>
+</html>
