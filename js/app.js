@@ -2,24 +2,46 @@
 window.APP_LANG = localStorage.getItem('lang') || 'ar';
 window.APP_THEME = localStorage.getItem('theme') || 'dark';
 
+// ===== BROADCAST CHANNEL (sync across tabs/pages without reload) =====
+const appChannel = new BroadcastChannel('myrip_app_channel');
+
+appChannel.onmessage = (e) => {
+  if (e.data.type === 'theme') {
+    _applyThemeDOM(e.data.value);
+    updateThemeToggle();
+  }
+  if (e.data.type === 'lang') {
+    _applyLangDOM(e.data.value);
+    updateLangButtons();
+    if (typeof updateLangBtns === 'function') updateLangBtns();
+  }
+};
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  applyTheme(window.APP_THEME);
-  applyLang(window.APP_LANG);
+  applyTheme(window.APP_THEME, false);
+  applyLang(window.APP_LANG, false);
 });
 
 // ===== THEME =====
-function applyTheme(theme) {
+function _applyThemeDOM(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   document.body.setAttribute('data-theme', theme);
   window.APP_THEME = theme;
   localStorage.setItem('theme', theme);
 }
 
+function applyTheme(theme, broadcast = true) {
+  _applyThemeDOM(theme);
+  updateThemeToggle();
+  if (broadcast) {
+    appChannel.postMessage({ type: 'theme', value: theme });
+  }
+}
+
 function toggleTheme() {
   const next = window.APP_THEME === 'dark' ? 'light' : 'dark';
-  applyTheme(next);
-  updateThemeToggle();
+  applyTheme(next, true);
 }
 
 function updateThemeToggle() {
@@ -30,14 +52,25 @@ function updateThemeToggle() {
 }
 
 // ===== LANG =====
-function applyLang(lang) {
+function _applyLangDOM(lang) {
   window.APP_LANG = lang;
   localStorage.setItem('lang', lang);
   document.body.setAttribute('data-lang', lang);
   document.documentElement.setAttribute('lang', lang);
+  // Arabic = RTL, French/English = LTR
   document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
   updateAllText();
   updateLangButtons();
+  if (typeof updateLangBtns === 'function') updateLangBtns();
+  // Update sidebar position after lang change
+  updateSidebarPosition();
+}
+
+function applyLang(lang, broadcast = true) {
+  _applyLangDOM(lang);
+  if (broadcast) {
+    appChannel.postMessage({ type: 'lang', value: lang });
+  }
 }
 
 function updateAllText() {
@@ -59,21 +92,20 @@ function updateLangButtons() {
   });
 }
 
-// ===== CCP → RIP ALGORITHM (Algorithme Algérie Poste officiel) =====
-// CCP format: 10 digits
-// RIP format: 00799999 XXXXXXXXXX YY  (20 digits total)
-//
-// ALGORITHME OFFICIEL Algeria Poste:
-// 1) CCP Key: multiplier chaque chiffre (de droite) par poids 4..13, somme mod 100
-// 2) RIP Key: remainder = (CCP × 100) mod 97
-//             si remainder+85 > 97 → key = 97 - (remainder+85-97)
-//             sinon               → key = 97 - (remainder+85)
+// ===== SIDEBAR POSITION =====
+// Arabic  → sidebar opens from RIGHT, menu button on RIGHT
+// FR / EN → sidebar opens from LEFT,  menu button on LEFT
+function updateSidebarPosition() {
+  // CSS handles the visual side via data-lang attribute on body — no extra JS needed here.
+  // This function is a hook for future use if needed.
+}
 
+// ===== CCP → RIP ALGORITHM (Algorithme Algérie Poste officiel) =====
 function calcCCPKey(ccp) {
   const padded = ccp.toString().padStart(10, '0');
   const digits = padded.split('');
   let cc = 0;
-  let z = 9;            // index de droite vers gauche
+  let z = 9;
   for (let i = 4; i <= 13; i++) {
     cc += parseInt(digits[z], 10) * i;
     z--;
@@ -100,7 +132,6 @@ function buildRIP(ccp, ripKey) {
 }
 
 function formatRIPDisplay(rip) {
-  // Format: 00799999 XXXXXXXXXX YY
   if (!rip || rip.length < 20) return rip;
   return rip.slice(0, 8) + ' ' + rip.slice(8, 18) + ' ' + rip.slice(18, 20);
 }
@@ -239,7 +270,7 @@ function closeConfirmModal() {
 const ICONS = {
   home: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
   accounts: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
-  settings: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  settings: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
   menu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`,
   copy: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
   share: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
