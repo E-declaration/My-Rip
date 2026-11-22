@@ -493,35 +493,37 @@ body:not([data-lang="ar"]) .input-icon:last-child { margin-left: 10px; }
 }
 .sidebar-overlay.open { opacity: 1; pointer-events: all; }
 
-/* LTR languages (fr, en) — sidebar from LEFT */
+/* Default (ar) — sidebar from RIGHT */
 .sidebar {
   position: fixed;
   top: 0;
-  left: auto;
-  right: 0;
+  right: auto;
+  left: 0;
   width: 290px;
   height: 100%;
   background: var(--sidebar-bg);
   z-index: 201;
-  transform: translateX(100%);
+  transform: translateX(-100%);
   transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
   display: flex;
   flex-direction: column;
-  box-shadow: -6px 0 32px rgba(0,0,0,0.3);
+  box-shadow: 6px 0 32px rgba(0,0,0,0.3);
   overflow: hidden;
 }
 
-/* RTL (Arabic) — sidebar from RIGHT (open from right side) */
-body[data-lang="ar"] .sidebar {
-  right: auto;
-  left: 0;
-  transform: translateX(-100%);
-  box-shadow: 6px 0 32px rgba(0,0,0,0.3);
+/* LTR (fr, en) — sidebar from LEFT */
+body[data-lang="fr"] .sidebar,
+body[data-lang="en"] .sidebar {
+  left: auto;
+  right: 0;
+  transform: translateX(100%);
+  box-shadow: -6px 0 32px rgba(0,0,0,0.3);
 }
-body[data-lang="ar"] .sidebar.open { transform: translateX(0); }
+body[data-lang="fr"] .sidebar.open,
+body[data-lang="en"] .sidebar.open { transform: translateX(0); }
 .sidebar.open { transform: translateX(0); }
 
-/* Menu button position: right side for AR, left side for FR/EN */
+/* Menu button position: left side for AR, right side for FR/EN */
 body[data-lang="ar"] .header-icons { order: 1; }
 body[data-lang="ar"] .header-title { order: 0; }
 
