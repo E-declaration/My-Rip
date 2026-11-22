@@ -65,6 +65,7 @@ const TRANSLATIONS = {
     privacy_delete_desc: "يمكنك حذف جميع بياناتك في أي وقت من خلال التطبيق أو مسح بيانات المتصفح.",
     search_placeholder: "بحث...",
     name_placeholder: "اللقب و الإسم",
+    tap_to_copy: "اضغط لنسخ الريب",
   },
   fr: {
     app_name: "My RiP",
@@ -132,6 +133,7 @@ const TRANSLATIONS = {
     privacy_delete_desc: "Vous pouvez supprimer toutes vos données à tout moment via l'application ou en effaçant les données du navigateur.",
     search_placeholder: "Rechercher...",
     name_placeholder: "Nom et prénom",
+    tap_to_copy: "Appuyez pour copier le RIP",
   },
   en: {
     app_name: "My RiP",
@@ -199,6 +201,7 @@ const TRANSLATIONS = {
     privacy_delete_desc: "You can delete all your data at any time through the app or by clearing browser data.",
     search_placeholder: "Search...",
     name_placeholder: "Full name",
+    tap_to_copy: "Tap to copy RIP",
   }
 };
 
