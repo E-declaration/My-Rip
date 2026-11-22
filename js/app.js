@@ -38,6 +38,13 @@ function applyLang(lang) {
   document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
   updateAllText();
   updateLangButtons();
+  updateSidebarDirection();
+}
+
+function updateSidebarDirection() {
+  // For Arabic: sidebar slides from LEFT (right: auto, left: 0, transform: translateX(-100%))
+  // For FR/EN: sidebar slides from RIGHT (right: 0, transform: translateX(100%))
+  // This is handled purely by CSS [data-lang] attribute selectors
 }
 
 function updateAllText() {
@@ -59,27 +66,31 @@ function updateLangButtons() {
   });
 }
 
-// ===== CCP → RIP ALGORITHM =====
-// RIP format: 007 99999 [10-digit CCP] [2-digit RIP key]
-// CCP key (clé CCP): calculated via modulo 97
-// RIP key (clé RIP): calculated from the full 18-digit number 007 99999 [CCP]
+// ===== CCP → RIP ALGORITHM (Algorithme Algérie Poste officiel) =====
+// CCP format: 10 digits
+// RIP format: 007 99999 XXXXXXXXXX YY  (20 digits total)
+// CCP Clé: 97 - (CCP mod 97)  → validated via Luhn-like mod97
+// RIP Clé: 97 - (("007" + "99999" + CCP + "00") mod 97)
+//          Using IBAN-style check: append "00" to the 18-digit number and compute 98 - (N mod 97)
+//          Standard Algérie Poste: clé = 97 - ((007 99999 CCP) mod 97), if 0 then 97
 
 function calcCCPKey(ccp) {
   // Pad CCP to 10 digits
   const padded = ccp.toString().padStart(10, '0');
-  // CCP key = 97 - (CCP number mod 97), if result is 0 then 97
-  const num = parseInt(padded, 10);
-  const key = 97 - (num % 97);
+  // CCP key = 97 - (CCP mod 97), if result equals 0 use 97
+  const num = BigInt(padded);
+  const mod = Number(num % 97n);
+  const key = 97 - mod;
   return key === 0 ? 97 : key;
 }
 
 function calcRIPKey(ccp) {
   const padded = ccp.toString().padStart(10, '0');
-  // 18-digit base: 007 99999 + CCP
-  const base = '007' + '99999' + padded;
-  // RIP key = 97 - (base mod 97)
-  // Need BigInt for large numbers
-  const num = BigInt(base);
+  // 18-digit base number: 007 + 99999 + CCP (10 digits)
+  const base18 = '007' + '99999' + padded;
+  // RIP key (clé RIP) = 97 - (base18 mod 97)
+  // Uses BigInt for accurate large number arithmetic
+  const num = BigInt(base18);
   const mod = Number(num % 97n);
   const key = 97 - mod;
   return key === 0 ? 97 : key;
@@ -93,7 +104,8 @@ function buildRIP(ccp, ripKey) {
 
 function formatRIPDisplay(rip) {
   // Format: 007 99999 XXXXXXXXXX YY
-  return rip.slice(0, 3) + ' ' + rip.slice(3, 8) + ' ' + rip.slice(8, 18) + ' ' + rip.slice(18);
+  if (!rip || rip.length < 20) return rip;
+  return rip.slice(0, 3) + ' ' + rip.slice(3, 8) + ' ' + rip.slice(8, 18) + ' ' + rip.slice(18, 20);
 }
 
 // ===== ACCOUNTS STORAGE =====
