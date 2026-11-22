@@ -103,10 +103,12 @@
   function formatDate(dateStr) {
     if (!dateStr) return '';
     try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) {
-        return dateStr.replace(',', '').replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$1.$2.$3');
+      const frMatch = dateStr.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s*(\d{2}):(\d{2})/);
+      if (frMatch) {
+        return `${frMatch[1]}.${frMatch[2]}.${frMatch[3]} ${frMatch[4]}:${frMatch[5]}`;
       }
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
       const dd = String(d.getDate()).padStart(2,'0');
       const mm = String(d.getMonth()+1).padStart(2,'0');
       const yyyy = d.getFullYear();
@@ -204,24 +206,44 @@
     `}).join('');
   }
 
+  // ===== POSITION DROPDOWN (smart: stays inside viewport) =====
+  function positionDropdown(menu, triggerRect) {
+    menu.style.display = 'block';
+    menu.style.left = '0px';
+    menu.style.top = '0px';
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
+
+    const menuW = menu.offsetWidth || 200;
+    const menuH = menu.offsetHeight || 160;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let left = triggerRect.right - menuW;
+    if (left < 8) left = 8;
+    if (left + menuW > vw - 8) left = vw - menuW - 8;
+
+    let top;
+    const spaceBelow = vh - triggerRect.bottom - 8;
+    if (spaceBelow >= menuH || spaceBelow >= 120) {
+      top = triggerRect.bottom + 4;
+    } else {
+      top = triggerRect.top - menuH - 4;
+      if (top < 8) top = 8;
+    }
+
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
+  }
+
   // ===== HEADER MENU =====
   function openHistMenu(e) {
     e.stopPropagation();
     closeItemMenu();
     const menu = document.getElementById('histDropdown');
-    const btn = e.currentTarget;
-    const rect = btn.getBoundingClientRect();
-    menu.style.display = 'block';
-    const isLtr = document.body.getAttribute('data-lang') !== 'ar';
-    if (isLtr) {
-      menu.style.left = rect.left + 'px';
-      menu.style.right = 'auto';
-    } else {
-      menu.style.right = (window.innerWidth - rect.right) + 'px';
-      menu.style.left = 'auto';
-    }
-    menu.style.top = (rect.bottom + 6) + 'px';
-    menu.style.bottom = 'auto';
+    positionDropdown(menu, e.currentTarget.getBoundingClientRect());
   }
   function closeHistMenu() { document.getElementById('histDropdown').style.display = 'none'; }
 
@@ -231,25 +253,7 @@
     closeHistMenu();
     activeItemIdx = idx;
     const menu = document.getElementById('itemDropdown');
-    const btn = e.currentTarget;
-    const rect = btn.getBoundingClientRect();
-    menu.style.display = 'block';
-    const isLtr = document.body.getAttribute('data-lang') !== 'ar';
-    if (isLtr) {
-      menu.style.left = rect.left + 'px';
-      menu.style.right = 'auto';
-    } else {
-      menu.style.right = (window.innerWidth - rect.right) + 'px';
-      menu.style.left = 'auto';
-    }
-    const spaceBelow = window.innerHeight - rect.bottom;
-    if (spaceBelow < 240) {
-      menu.style.top = 'auto';
-      menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-    } else {
-      menu.style.top = (rect.bottom + 4) + 'px';
-      menu.style.bottom = 'auto';
-    }
+    positionDropdown(menu, e.currentTarget.getBoundingClientRect());
   }
   function closeItemMenu() { document.getElementById('itemDropdown').style.display = 'none'; activeItemIdx = null; }
 
