@@ -891,6 +891,91 @@ body:not([data-lang="ar"]) .info-section ul { padding-left: 16px; padding-right:
 }
 .step-dot.active { background: var(--accent); width: 18px; border-radius: 3px; }
 
+/* ===== SUBPAGE HEADER (no sidebar - with back button) ===== */
+.subpage-header {
+  background: var(--header-bg);
+  padding: 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 20px rgba(37,99,235,0.3);
+}
+
+.subpage-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ffffff;
+  flex: 1;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.back-btn {
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15);
+  color: #ffffff;
+  border-radius: 12px;
+  transition: background var(--transition), transform var(--transition);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+.back-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+.back-btn:active { transform: scale(0.95); }
+
+/* RTL: back button arrow direction */
+body[data-lang="ar"] .back-btn svg { transform: scaleX(-1); }
+
+.subpage-action-btn {
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15);
+  color: #ffffff;
+  border-radius: 12px;
+  transition: background var(--transition), transform var(--transition);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+.subpage-action-btn:hover { background: rgba(255,255,255,0.25); }
+
+.subpage-content {
+  /* No bottom nav, so less padding */
+  padding-bottom: 24px;
+}
+
+/* ===== FLAG LANG BUTTONS ===== */
+.lang-btn-flag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.lang-btn-flag .flag {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.lang-btn-flag.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+}
+.lang-btn-flag:not(.active):hover { border-color: var(--accent); color: var(--accent); }
+
 /* ===== ANIMATION ===== */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
