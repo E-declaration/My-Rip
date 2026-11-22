@@ -1,18 +1,18 @@
-const CACHE_NAME = 'myrip-v1';
+const CACHE_NAME = 'myrip-v3';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/pages/accounts.html',
-  '/pages/settings.html',
-  '/pages/about.html',
-  '/pages/history.html',
-  '/pages/privacy.html',
-  '/css/main.css',
-  '/js/app.js',
-  '/js/i18n.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  './',
+  './index.html',
+  './pages/accounts.html',
+  './pages/settings.html',
+  './pages/about.html',
+  './pages/history.html',
+  './pages/privacy.html',
+  './css/main.css',
+  './js/app.js',
+  './js/i18n.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
 ];
 
 self.addEventListener('install', e => {
@@ -32,6 +32,15 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Only handle GET requests
+  if (e.request.method !== 'GET') return;
+
+  // Skip cross-origin requests (fonts, etc.) — let them go through normally
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -41,7 +50,12 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
         }
         return res;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => {
+        // Offline fallback: return cached index.html for navigation
+        if (e.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
+      });
     })
   );
 });
