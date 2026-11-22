@@ -18,8 +18,9 @@
 <body>
 <div id="app">
 
-  <!-- HEADER -->
+  <!-- HEADER (home page - has sidebar button) -->
   <header class="header">
+    <div class="header-title" data-i18n="tool_ccp_rip">CCP → RIP</div>
     <div class="header-icons">
       <button class="header-btn" id="menuBtn" onclick="openSidebar()" aria-label="menu">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -29,8 +30,6 @@
         </svg>
       </button>
     </div>
-    <div class="header-title" data-i18n="tool_ccp_rip">CCP → RIP</div>
-    <div style="width:42px;"></div>
   </header>
 
   <!-- MAIN -->
@@ -159,6 +158,11 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
       <span data-i18n="tool_ccp_rip">CCP To RIP</span>
     </button>
+    <!-- السجل - جديد -->
+    <button class="sidebar-item" onclick="navigateTo('pages/history.html')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+      <span data-i18n="sidebar_history">السجل</span>
+    </button>
     <div class="sidebar-divider"></div>
     <button class="sidebar-item" onclick="navigateTo('pages/settings.html')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -219,6 +223,21 @@
   const ripResultBox = document.getElementById('ripResultBox');
 
   let currentRIP = '';
+  let currentCCPKey = '';
+  let currentRIPKey = '';
+
+  // ===== HISTORY HELPERS =====
+  function getHistoryArr() {
+    try { return JSON.parse(localStorage.getItem('ripHistory') || '[]'); } catch { return []; }
+  }
+  function addToHistory(entry) {
+    const h = getHistoryArr();
+    // Avoid duplicate consecutive
+    if (h.length > 0 && h[0].ccp === entry.ccp) return;
+    h.unshift(entry);
+    if (h.length > 100) h.pop();
+    localStorage.setItem('ripHistory', JSON.stringify(h));
+  }
 
   // Auto-calculate on every keystroke
   ccpInput.addEventListener('input', () => {
@@ -226,23 +245,21 @@
     let val = ccpInput.value.replace(/\D/g, '').slice(0, 10);
     ccpInput.value = val;
 
-    // Update digit counter
     const len = val.length;
     digitCounter.textContent = len + '/10';
     digitCounter.classList.toggle('full', len === 10);
     digitCounter.classList.toggle('warn', len > 0 && len < 10);
 
-    // Show/hide clear button
     ccpClearBtn.style.display = len > 0 ? 'flex' : 'none';
-
-    // Update step dots
     updateStepDots(len);
 
-    if (len === 10) {
-      const ck = calcCCPKey(val);
-      const rk = calcRIPKey(val);
-      const rip = buildRIP(val, rk);
+    if (len > 0) {
+      // Progressive: show partial calculation as digits are typed
+      const paddedVal = val.padEnd(10, '0');
+      const ck = calcCCPKey(paddedVal);
+      const rk = calcRIPKey(paddedVal);
 
+      // Show keys immediately as user types
       ccpKeyInput.value = ck;
       ripKeyInput.value = rk;
       ccpKeyVal.textContent = ck;
@@ -250,23 +267,40 @@
       ccpKeyBadge.style.display = 'flex';
       ripKeyBadge.style.display = 'flex';
 
-      currentRIP = rip;
-      ripResult.textContent = 'RIP: ' + formatRIPDisplay(rip);
-      ripResult.classList.add('has-value');
-      ripResultBox.classList.add('has-rip');
-      copyHint.style.display = 'block';
-    } else {
-      // Progressive calculation for partial input
-      if (len >= 2) {
-        const ck = calcCCPKey(val.padEnd(10, '0'));
-        ccpKeyInput.value = '…';
-        ripKeyInput.value = '…';
+      if (len === 10) {
+        // Full 10-digit number - show complete RIP
+        const rip = buildRIP(val, rk);
+        currentRIP = rip;
+        currentCCPKey = ck;
+        currentRIPKey = rk;
+        ripResult.textContent = 'RIP: ' + formatRIPDisplay(rip);
+        ripResult.classList.add('has-value');
+        ripResultBox.classList.add('has-rip');
+        copyHint.style.display = 'block';
+
+        // Save to history
+        addToHistory({
+          ccp: val,
+          ccpKey: ck,
+          ripKey: rk,
+          rip: rip,
+          date: new Date().toLocaleString('fr-DZ')
+        });
       } else {
-        ccpKeyInput.value = '';
-        ripKeyInput.value = '';
+        // Partial - show placeholder with live keys
+        currentRIP = '';
+        const partialDisplay = val + 'X'.repeat(10 - len);
+        const rip = buildRIP(paddedVal, rk);
+        ripResult.textContent = 'RIP: ' + formatRIPDisplay(rip);
+        ripResult.classList.add('has-value');
+        ripResultBox.classList.remove('has-rip');
+        copyHint.style.display = 'none';
       }
+    } else {
       ccpKeyBadge.style.display = 'none';
       ripKeyBadge.style.display = 'none';
+      ccpKeyInput.value = '';
+      ripKeyInput.value = '';
       currentRIP = '';
       ripResult.textContent = t('rip_result');
       ripResult.classList.remove('has-value');
@@ -282,7 +316,6 @@
       document.getElementById('dot3'),
       document.getElementById('dot4'),
     ];
-    // 4 steps: 0-2, 3-5, 6-8, 9-10
     const step = len === 0 ? 0 : len <= 3 ? 1 : len <= 6 ? 2 : len <= 9 ? 3 : 4;
     dots.forEach((d, i) => d.classList.toggle('active', i < step));
   }
@@ -325,13 +358,11 @@
     addAccount({ name, ccp, ccpKey: ck, ripKey: rk, rip: currentRIP });
     showToast(t('saved'));
     closeSaveModal();
-    // Reset form
     ccpInput.value = '';
     ccpInput.dispatchEvent(new Event('input'));
     document.getElementById('nameInput').value = '';
   }
 
-  // Close modal on overlay click
   document.getElementById('saveModal').addEventListener('click', function(e) {
     if (e.target === this) closeSaveModal();
   });
