@@ -61,48 +61,48 @@ function updateLangButtons() {
 
 // ===== CCP → RIP ALGORITHM (Algorithme Algérie Poste officiel) =====
 // CCP format: 10 digits
-// RIP format: 007 99999 XXXXXXXXXX YY  (20 digits total)
+// RIP format: 00799999 XXXXXXXXXX YY  (20 digits total)
 //
-// ALGORITHME CORRECT:
-// 1) CCP Key = 97 - (CCP_number mod 97), if 0 → use 97
-// 2) RIP Key: build 20-digit string "00799999" + CCP(10) + "00"
-//             then key = 98 - (N mod 97), if result is 97 use 97, if 98 use 01
-//             Standard Algeria Poste uses IBAN-style: 98 - mod97
+// ALGORITHME OFFICIEL Algeria Poste:
+// 1) CCP Key: multiplier chaque chiffre (de droite) par poids 4..13, somme mod 100
+// 2) RIP Key: remainder = (CCP × 100) mod 97
+//             si remainder+85 > 97 → key = 97 - (remainder+85-97)
+//             sinon               → key = 97 - (remainder+85)
 
 function calcCCPKey(ccp) {
-  // Pad CCP to 10 digits
   const padded = ccp.toString().padStart(10, '0');
-  // CCP key = 97 - (CCP mod 97), if result equals 0 use 97
-  const num = BigInt(padded);
-  const mod = Number(num % 97n);
-  const key = 97 - mod;
-  return key === 0 ? 97 : key;
+  const digits = padded.split('');
+  let cc = 0;
+  let z = 9;            // index de droite vers gauche
+  for (let i = 4; i <= 13; i++) {
+    cc += parseInt(digits[z], 10) * i;
+    z--;
+  }
+  return (cc % 100).toString().padStart(2, '0');
 }
 
 function calcRIPKey(ccp) {
-  const padded = ccp.toString().padStart(10, '0');
-  // Build the full number for IBAN-style mod97 check:
-  // "007" + "99999" + CCP(10 digits) + "00"
-  // This is the 20-digit RIP with key=00, then apply 98 - mod97
-  const base = '00799999' + padded + '00';
-  const num = BigInt(base);
-  const mod = Number(num % 97n);
-  let key = 98 - mod;
-  if (key < 1) key = 97;
-  if (key > 97) key = 1;
-  return key;
+  const ccpInt = parseInt(ccp, 10);
+  const remainder = (ccpInt * 100) % 97;
+  let key;
+  if (remainder + 85 > 97) {
+    key = 97 - (remainder + 85 - 97);
+  } else {
+    key = 97 - (remainder + 85);
+  }
+  return key.toString().padStart(2, '0');
 }
 
 function buildRIP(ccp, ripKey) {
   const padded = ccp.toString().padStart(10, '0');
   const keyStr = ripKey.toString().padStart(2, '0');
-  return '007' + '99999' + padded + keyStr;
+  return '00799999' + padded + keyStr;
 }
 
 function formatRIPDisplay(rip) {
-  // Format: 007 99999 XXXXXXXXXX YY
+  // Format: 00799999 XXXXXXXXXX YY
   if (!rip || rip.length < 20) return rip;
-  return rip.slice(0, 3) + ' ' + rip.slice(3, 8) + ' ' + rip.slice(8, 18) + ' ' + rip.slice(18, 20);
+  return rip.slice(0, 8) + ' ' + rip.slice(8, 18) + ' ' + rip.slice(18, 20);
 }
 
 // ===== ACCOUNTS STORAGE =====
