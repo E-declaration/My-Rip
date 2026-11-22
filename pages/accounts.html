@@ -151,15 +151,17 @@
   let selectionMode = false;
   let selectedIds = new Set();
 
-  // ===== FORMAT DATE like 30.08.2026 12:33 =====
+  // ===== FORMAT DATE like 22.11.2026 15:04 =====
   function formatDate(dateStr) {
     if (!dateStr) return '';
     try {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) {
-        // Try to parse fr-DZ format like "22/11/2026, 15:04:31"
-        return dateStr.replace(',', '').replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$1.$2.$3');
+      // Handle fr-DZ locale string like "22/11/2026, 15:04:31"
+      const frMatch = dateStr.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s*(\d{2}):(\d{2})/);
+      if (frMatch) {
+        return `${frMatch[1]}.${frMatch[2]}.${frMatch[3]} ${frMatch[4]}:${frMatch[5]}`;
       }
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
       const dd = String(d.getDate()).padStart(2,'0');
       const mm = String(d.getMonth()+1).padStart(2,'0');
       const yyyy = d.getFullYear();
@@ -273,24 +275,48 @@
     `}).join('');
   }
 
+  // ===== POSITION DROPDOWN (smart: stays inside viewport) =====
+  function positionDropdown(menu, triggerRect) {
+    menu.style.display = 'block';
+    // Reset first to measure
+    menu.style.left = '0px';
+    menu.style.top = '0px';
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
+
+    const menuW = menu.offsetWidth || 200;
+    const menuH = menu.offsetHeight || 200;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Horizontal: align to right edge of trigger, clamp inside screen
+    let left = triggerRect.right - menuW;
+    if (left < 8) left = 8;
+    if (left + menuW > vw - 8) left = vw - menuW - 8;
+
+    // Vertical: below trigger if space, else above
+    let top;
+    const spaceBelow = vh - triggerRect.bottom - 8;
+    if (spaceBelow >= menuH || spaceBelow >= 150) {
+      top = triggerRect.bottom + 4;
+    } else {
+      top = triggerRect.top - menuH - 4;
+      if (top < 8) top = 8;
+    }
+
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
+  }
+
   // ===== HEADER MENU =====
   function openHeaderMenu(e) {
     e.stopPropagation();
     closeCardMenu();
     const menu = document.getElementById('headerDropdown');
-    const btn = e.currentTarget;
-    const rect = btn.getBoundingClientRect();
-    menu.style.display = 'block';
-    // position below button
-    const isLtr = document.body.getAttribute('data-lang') !== 'ar';
-    if (isLtr) {
-      menu.style.left = rect.left + 'px';
-      menu.style.right = 'auto';
-    } else {
-      menu.style.right = (window.innerWidth - rect.right) + 'px';
-      menu.style.left = 'auto';
-    }
-    menu.style.top = (rect.bottom + 6) + 'px';
+    const rect = e.currentTarget.getBoundingClientRect();
+    positionDropdown(menu, rect);
   }
   function closeHeaderMenu() {
     document.getElementById('headerDropdown').style.display = 'none';
@@ -302,26 +328,8 @@
     closeHeaderMenu();
     activeCardId = id;
     const menu = document.getElementById('cardDropdown');
-    const btn = e.currentTarget;
-    const rect = btn.getBoundingClientRect();
-    menu.style.display = 'block';
-    const isLtr = document.body.getAttribute('data-lang') !== 'ar';
-    if (isLtr) {
-      menu.style.left = rect.left + 'px';
-      menu.style.right = 'auto';
-    } else {
-      menu.style.right = (window.innerWidth - rect.right) + 'px';
-      menu.style.left = 'auto';
-    }
-    // position above or below
-    const spaceBelow = window.innerHeight - rect.bottom;
-    if (spaceBelow < 280) {
-      menu.style.top = 'auto';
-      menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-    } else {
-      menu.style.top = (rect.bottom + 4) + 'px';
-      menu.style.bottom = 'auto';
-    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    positionDropdown(menu, rect);
   }
   function closeCardMenu() {
     document.getElementById('cardDropdown').style.display = 'none';
