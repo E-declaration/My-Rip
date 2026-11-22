@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>My RiP – سياسة الخصوصية</title>
+  <meta name="theme-color" content="#b8cef0"/>
+  <link rel="manifest" href="../manifest.json"/>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico"/>
+  <link rel="icon" type="image/png" href="../icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="../icons/icon-192.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+</head>
+<body>
+<div id="app">
+
+  <header class="header">
+    <div class="header-icons">
+      <button class="header-btn" onclick="openSidebar()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="header-title" data-i18n="privacy">سياسة الخصوصية</div>
+    <div style="width:40px;"></div>
+  </header>
+
+  <main class="main-content">
+    <div class="info-section">
+      <p data-i18n="privacy_intro">نحن نحترم خصوصيتك تمامًا. إليك ما تحتاج معرفته:</p>
+    </div>
+
+    <div class="info-section">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span data-i18n="privacy_local">تخزين محلي فقط</span>
+      </h3>
+      <p data-i18n="privacy_local_desc">جميع بياناتك (أرقام الحسابات والأسماء) تُحفظ محليًا في متصفحك فقط ولا تُرسل إلى أي خادم.</p>
+    </div>
+
+    <div class="info-section">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span data-i18n="privacy_no_data">لا نجمع بياناتك</span>
+      </h3>
+      <p data-i18n="privacy_no_data_desc">لا يقوم التطبيق بجمع أو تخزين أي بيانات شخصية على الإنترنت.</p>
+    </div>
+
+    <div class="info-section">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        <span data-i18n="privacy_delete">حق الحذف</span>
+      </h3>
+      <p data-i18n="privacy_delete_desc">يمكنك حذف جميع بياناتك في أي وقت من خلال التطبيق أو مسح بيانات المتصفح.</p>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="navigateTo('../index.html')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span data-i18n="home">الرئيسية</span>
+    </button>
+    <button class="nav-item" onclick="navigateTo('accounts.html')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span data-i18n="accounts">الحسابات</span>
+    </button>
+    <button class="nav-item" onclick="navigateTo('settings.html')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span data-i18n="settings">الإعدادات</span>
+    </button>
+  </nav>
+
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <img src="../icons/icon-192.png" alt="My RiP" class="sidebar-logo"/>
+    <div class="sidebar-app-name">My RiP</div>
+    <div class="sidebar-version" data-i18n="free_version">النسخة المجانية</div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="sidebar-section-title" data-i18n="tools">الأدوات</div>
+    <button class="sidebar-item" onclick="navigateTo('../index.html')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span data-i18n="tool_ccp_rip">CCP To RIP</span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <button class="sidebar-item" onclick="navigateTo('settings.html')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span data-i18n="sidebar_settings">إعدادات التطبيق</span>
+    </button>
+    <button class="sidebar-item" onclick="navigateTo('about.html')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span data-i18n="about">حول التطبيق</span>
+    </button>
+    <button class="sidebar-item active" onclick="navigateTo('privacy.html')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span data-i18n="privacy">سياسة الخصوصية</span>
+    </button>
+  </div>
+</aside>
+
+<div id="toast" class="toast"></div>
+<script src="../js/i18n.js"></script>
+<script src="../js/app.js"></script>
+</body>
+</html>
