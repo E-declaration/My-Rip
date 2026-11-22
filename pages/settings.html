@@ -83,26 +83,16 @@
 <script src="../js/app.js"></script>
 <script>
   function confirmSetLang(lang) {
-    if (lang === window.APP_LANG) return; // already selected
-    showConfirmModal(
-      t('confirm_lang_change'),
-      t('confirm_lang_change_msg'),
-      () => {
-        applyLang(lang);
-        updateLangBtns();
-      }
-    );
+    if (lang === window.APP_LANG) return;
+    // Apply immediately — broadcasts to all open pages via BroadcastChannel
+    applyLang(lang, true);
+    updateLangBtns();
   }
 
   function confirmToggleTheme() {
-    showConfirmModal(
-      t('confirm_theme_change'),
-      t('confirm_theme_change_msg'),
-      () => {
-        toggleTheme();
-        updateThemeToggle();
-      }
-    );
+    // Apply immediately — broadcasts to all open pages via BroadcastChannel
+    toggleTheme();
+    updateThemeToggle();
   }
 
   function updateLangBtns() {
