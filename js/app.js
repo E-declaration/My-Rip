@@ -38,13 +38,6 @@ function applyLang(lang) {
   document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
   updateAllText();
   updateLangButtons();
-  updateSidebarDirection();
-}
-
-function updateSidebarDirection() {
-  // For Arabic: sidebar slides from LEFT (right: auto, left: 0, transform: translateX(-100%))
-  // For FR/EN: sidebar slides from RIGHT (right: 0, transform: translateX(100%))
-  // This is handled purely by CSS [data-lang] attribute selectors
 }
 
 function updateAllText() {
@@ -69,10 +62,12 @@ function updateLangButtons() {
 // ===== CCP → RIP ALGORITHM (Algorithme Algérie Poste officiel) =====
 // CCP format: 10 digits
 // RIP format: 007 99999 XXXXXXXXXX YY  (20 digits total)
-// CCP Clé: 97 - (CCP mod 97)  → validated via Luhn-like mod97
-// RIP Clé: 97 - (("007" + "99999" + CCP + "00") mod 97)
-//          Using IBAN-style check: append "00" to the 18-digit number and compute 98 - (N mod 97)
-//          Standard Algérie Poste: clé = 97 - ((007 99999 CCP) mod 97), if 0 then 97
+//
+// ALGORITHME CORRECT:
+// 1) CCP Key = 97 - (CCP_number mod 97), if 0 → use 97
+// 2) RIP Key: build 20-digit string "00799999" + CCP(10) + "00"
+//             then key = 98 - (N mod 97), if result is 97 use 97, if 98 use 01
+//             Standard Algeria Poste uses IBAN-style: 98 - mod97
 
 function calcCCPKey(ccp) {
   // Pad CCP to 10 digits
@@ -86,14 +81,16 @@ function calcCCPKey(ccp) {
 
 function calcRIPKey(ccp) {
   const padded = ccp.toString().padStart(10, '0');
-  // 18-digit base number: 007 + 99999 + CCP (10 digits)
-  const base18 = '007' + '99999' + padded;
-  // RIP key (clé RIP) = 97 - (base18 mod 97)
-  // Uses BigInt for accurate large number arithmetic
-  const num = BigInt(base18);
+  // Build the full number for IBAN-style mod97 check:
+  // "007" + "99999" + CCP(10 digits) + "00"
+  // This is the 20-digit RIP with key=00, then apply 98 - mod97
+  const base = '00799999' + padded + '00';
+  const num = BigInt(base);
   const mod = Number(num % 97n);
-  const key = 97 - mod;
-  return key === 0 ? 97 : key;
+  let key = 98 - mod;
+  if (key < 1) key = 97;
+  if (key > 97) key = 1;
+  return key;
 }
 
 function buildRIP(ccp, ripKey) {
@@ -204,6 +201,40 @@ function navigateTo(page) {
   window.location.href = page;
 }
 
+// ===== CONFIRM MODAL =====
+function showConfirmModal(title, message, onConfirm) {
+  let modal = document.getElementById('confirmModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'confirmModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="confirmModalTitle"></div>
+        <p style="color:var(--text2);font-size:0.9rem;margin-bottom:8px;" id="confirmModalMsg"></p>
+        <div class="modal-actions">
+          <button class="btn btn-outline" id="confirmModalCancel" style="flex:1;"></button>
+          <button class="btn btn-primary" id="confirmModalOk" style="flex:1;"></button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e){ if(e.target===this) closeConfirmModal(); });
+  }
+  document.getElementById('confirmModalTitle').textContent = title;
+  document.getElementById('confirmModalMsg').textContent = message;
+  document.getElementById('confirmModalCancel').textContent = t('cancel');
+  document.getElementById('confirmModalOk').textContent = t('confirm');
+  document.getElementById('confirmModalCancel').onclick = closeConfirmModal;
+  document.getElementById('confirmModalOk').onclick = () => { closeConfirmModal(); onConfirm(); };
+  modal.classList.add('open');
+}
+
+function closeConfirmModal() {
+  const modal = document.getElementById('confirmModal');
+  if (modal) modal.classList.remove('open');
+}
+
 // ===== SVG ICONS =====
 const ICONS = {
   home: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
@@ -228,4 +259,5 @@ const ICONS = {
   lang: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
   search: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
   arrow: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`,
+  history: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>`,
 };
